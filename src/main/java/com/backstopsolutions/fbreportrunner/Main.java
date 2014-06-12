@@ -34,6 +34,8 @@ public class Main {
         System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.NoOpLog");
     }
 
+    private static ReportOutput reportOutput = ReportOutput.NOOP;
+
     public static String getValidOption(final String optionName, final CommandLine cmd, String defaultValue)
         throws ParseException {
         String val = cmd.hasOption(optionName) ? cmd.getOptionValue(optionName) : defaultValue;
@@ -59,6 +61,11 @@ public class Main {
             settings.setPassword(getValidOption("password", cmd, null));
             settings.setReportPattern(getValidOption("report", cmd, "*"));
             settings.setIterationCount(Integer.parseInt(getValidOption("count", cmd, "1")));
+
+            String outputOpt = getValidOption("output", cmd, "NOOP");
+            if (outputOpt.equalsIgnoreCase("XLSX")) {
+                reportOutput = new XLSXReportOutput();
+            }
             boolean listOnly = cmd.hasOption("list");
 
 
@@ -116,6 +123,9 @@ public class Main {
         option = OptionBuilder.withDescription("Do not execute the reports, just list them.  Respects pattern matching").create("list");
         options.addOption(option);
 
+        option = OptionBuilder.withArgName("output_opt").hasArg().withDescription("Output option.  Right now only option is XLSX").create("output");
+        options.addOption(option);
+
         return options;
 
     }
@@ -148,21 +158,36 @@ public class Main {
         return  "[" + ts + "]";
     }
 
+    private static void delayOnFailure(ReportRunner runner) {
+        if (runner.getRunStatus() == ReportRunner.RunStatus.FAILURE) {
+            try {
+                // on failures, sleep 1/2 second
+                Thread.sleep(500);
+            } catch (InterruptedException ie) {
+
+            }
+        }
+    }
+
+    private static void outputResults(ReportData data) {
+        try {
+            reportOutput.sendToOutput(data);
+
+        } catch (Exception exc) {
+            exc.printStackTrace();
+        }
+    }
     private static void runReport(SoapEnvironmentSettings settings, InvocableReport report) {
         if (settings.acceptReport(report.getReportTitle())) {
             ReportRunner runner = new ReportRunner(settings, report);
             for (int inx =0; inx < settings.getIterationCount(); inx++) {
                 runner.run();
                 System.out.println(getTimeStamp()  + "," + runner.toString());
-                if (runner.getRunStatus() == ReportRunner.RunStatus.FAILURE) {
-                    try {
-                        // on failures, sleep 1/2 second
-                        Thread.sleep(500);
-                    } catch (InterruptedException ie) {
 
-                    }
-                    break;
-                }
+               if (runner.getRunStatus() == ReportRunner.RunStatus.SUCCESS) {
+                   //outputResults(runner.getReporData());
+               }
+                delayOnFailure(runner);
             }
         }
     }

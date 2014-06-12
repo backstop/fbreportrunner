@@ -170,10 +170,17 @@ public class ReportRunner implements Runnable {
         Object returnData = execMethod.invoke(stub, reportObject, loginInfo);
         long endTime = System.currentTimeMillis();
         setExecutionTime(endTime-startTime);
-        setResultsCount(extractResultsCount(returnData));
+        Object[] rows = getRows(returnData);
+        setResultsCount((rows != null) ? rows.length : 0);
+
+
+        // can flag this, but for now, list build the ReportData
+        //buildReportData(rows);
     }
 
-    private long extractResultsCount(Object returnData) throws Exception {
+
+
+    private Object[] getRows(Object returnData) throws Exception {
         Method m = returnData.getClass().getMethod("getOut");
 
         Object out = m.invoke(returnData);
@@ -188,7 +195,7 @@ public class ReportRunner implements Runnable {
         Object[] ary = (Object[])rows;
 
 
-        return (ary != null) ? ary.length : 0;
+        return ary;
     }
 
     private String getReportHash() {
