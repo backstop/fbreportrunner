@@ -15,8 +15,10 @@ import org.codehaus.jackson.type.TypeReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -41,6 +43,8 @@ public class ReportRunner implements Runnable {
     private long executionTime = 0l;
     private long resultsCount = 0l;
     private int fieldCount = 0;
+    private List<String> fieldNames = new ArrayList<>();
+
 
     private RunStatus runStatus = RunStatus.NOT_EXECUTED;
 
@@ -55,6 +59,9 @@ public class ReportRunner implements Runnable {
             ObjectMapper om = new ObjectMapper();
             HashMap<String, Object> fields = om.readValue(report.getQueryDefinition(), HashMap.class);
             fieldCount = fields.size();
+            for (String key : fields.keySet()) {
+                fieldNames.add(key);
+            }
         } catch (Exception exc) {
             fieldCount = 0;
         }
@@ -82,6 +89,10 @@ public class ReportRunner implements Runnable {
 
     public RunStatus getRunStatus() {
         return runStatus;
+    }
+
+    public String getTitle() {
+        return report.getReportTitle();
     }
 
     public void run() {
@@ -178,11 +189,21 @@ public class ReportRunner implements Runnable {
         //buildReportData(rows);
     }
 
+    private ReportData buildReportData(Object[] rows) {
+        ReportData data = new ReportData(this.fieldNames);
+        for (Object row : rows) {
+            for (String fieldName : fieldNames) {
+               //
+            }
+            //data.addRow();
+        }
+        return data;
+    }
+
 
 
     private Object[] getRows(Object returnData) throws Exception {
         Method m = returnData.getClass().getMethod("getOut");
-
         Object out = m.invoke(returnData);
 
         if (isLargeReport() || out.getClass().toString().contains("Large")) {
@@ -190,18 +211,14 @@ public class ReportRunner implements Runnable {
         } else {
             m = out.getClass().getMethod("getReportRow");
         }
-
         Object rows = m.invoke(out);
         Object[] ary = (Object[])rows;
-
 
         return ary;
     }
 
     private String getReportHash() {
-
         String request = StringUtils.replaceChars(report.getQueryDefinition() + report.getRestrictionExpression(), "\t\n\r ", "");
-
         return DigestUtils.md5Hex(request);
     }
 
@@ -211,7 +228,7 @@ public class ReportRunner implements Runnable {
 
         sb.append("REPORT_TITLE=");
         sb.append('"');
-        sb.append(report.getReportTitle());
+        sb.append(this.getTitle());
         sb.append('"');
         sb.append(',');
         sb.append("URI=");
@@ -233,8 +250,5 @@ public class ReportRunner implements Runnable {
         sb.append(fieldCount);
 
         return sb.toString();
-
     }
-
-
 }
