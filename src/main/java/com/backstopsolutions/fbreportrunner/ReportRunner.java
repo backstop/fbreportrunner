@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 
 /**
- * Created with IntelliJ IDEA.
+ * Created with IntelliJ IDEA. This class will run a report against backstop
  * User: dsteeber
  * Date: 3/21/14
  * Time: 9:51 AM

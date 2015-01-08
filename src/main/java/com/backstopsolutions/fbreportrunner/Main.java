@@ -45,6 +45,11 @@ public class Main {
         return val;
     }
 
+    /**
+     * Main entry point of the jar file.  This takes a set of arguments and runs the reports associated
+     * @param args
+     * @throws Exception
+     */
     public static final void main(final String[] args)
         throws Exception {
         Options options = setupOptions();
@@ -76,10 +81,12 @@ public class Main {
                 System.out.println(getTimeStamp()  + "," + "MESSAGE=\"Starting Report Run, iterations=" + settings.getIterationCount() + '"');
                 for (InvocableReport report : reports)  {
                     if (listOnly) {
+                        // Only list out the reports
                         if (settings.acceptReport(report.getReportTitle())) {
                             System.out.println(getTimeStamp()  + ","  + "Report_TITLE=\"" + report.getReportTitle() + '"');
                         }
                     } else {
+                        //Run the reports
                         runReport(settings, report);
                     }
                 }
