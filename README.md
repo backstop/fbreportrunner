@@ -1,5 +1,4 @@
-fbreportrunner - Fundbutter Report Runner
-==============
+# fbreportrunner - Fundbutter Report Runner
 
 This is a simple project that will run some or all of the reports saved in a backstop instance.
 The project was built using IntelliJ / Maven
